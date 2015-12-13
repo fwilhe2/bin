@@ -1,0 +1,31 @@
+#!/bin/bash
+set -o nounset
+set -o errexit
+set -o xtrace
+
+if [[ "$#" -ne 1 ]]; then
+	echo "Usage: ./backup /path/to/backup/dir"
+	exit 1
+fi
+
+TARGET=$1
+
+if [[ ! -d $TARGET ]]; then
+	echo "$TARGET is not a directory!"
+	exit 1
+fi
+
+rdiff-backup \
+	--terminal-verbosity 5 \
+	--exclude ~/.cache \
+	--exclude ~/.gradle \
+	--exclude ~/.vagrant.d \
+	--exclude ~/.IntelliJIdea14 \
+	--exclude ~/.IntelliJIdea15 \
+	--exclude ~/.m2 \
+	--exclude ~/.npm \
+	--exclude ~/.local/share/Trash \
+	--exclude ~/.cabal \
+	--exclude ~/.sdkman \
+	~ \
+	$TARGET/`hostname`
