@@ -28,4 +28,4 @@ rdiff-backup \
 	--exclude ~/.cabal \
 	--exclude ~/.sdkman \
 	~ \
-	$TARGET/`hostname`
+	"$TARGET/$(hostname)"
