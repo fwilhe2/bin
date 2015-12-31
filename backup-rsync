@@ -1,0 +1,38 @@
+#!/bin/bash
+set -o nounset
+set -o errexit
+set -o xtrace
+
+# Based on https://wiki.ubuntuusers.de/Skripte/Backup_mit_RSYNC#Beispiel-Minimal-Variante
+
+if [[ "$#" -ne 1 ]]; then
+	echo "Usage: $(basename "$0") /path/to/backup/dir"
+	exit 1
+fi
+
+TARGET=$1
+
+if [[ ! -d $TARGET ]]; then
+	echo "$TARGET is not a directory!"
+	exit 1
+fi
+
+SOURCE=~
+TODAY=$(date +%Y-%m-%d)
+
+rsync --archive --relative --progress --delete \
+	--exclude ~/.cache \
+	--exclude ~/.gradle \
+	--exclude ~/.vagrant.d \
+	--exclude ~/.IntelliJIdea14 \
+	--exclude ~/.IntelliJIdea15 \
+	--exclude ~/.m2 \
+	--exclude ~/.npm \
+	--exclude ~/.local/share/Trash \
+	--exclude ~/.cabal \
+	--exclude ~/.sdkman \
+	--exclude ~/code/no_backup \
+	"${SOURCE}"  "${TARGET}/backup-$(hostname)-${TODAY}/" --link-dest="${TARGET}/backup-$(hostname)-latest/"
+
+ln -nsf "${TARGET}/backup-$(hostname)-${TODAY}/" "${TARGET}/backup-$(hostname)-latest"
+
