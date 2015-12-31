@@ -4,7 +4,7 @@ set -o errexit
 set -o xtrace
 
 if [[ "$#" -ne 1 ]]; then
-	echo "Usage: ./backup /path/to/backup/dir"
+	echo "Usage: $(basename "$0") /path/to/backup/dir"
 	exit 1
 fi
 
