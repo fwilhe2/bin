@@ -1,0 +1,16 @@
+#!/bin/bash
+set -o nounset
+set -o errexit
+set -o xtrace
+
+if [[ "$#" -ne 1 ]]; then
+	echo "Usage: $(basename "$0") /dev/sdXYZ"
+	exit 1
+fi
+
+DEVICE=$1
+
+sudo cryptsetup luksFormat -c aes-xts-plain64 -s 512 -h sha512 -y "$DEVICE"
+sudo cryptsetup luksOpen "$DEVICE" crypt
+sudo mkfs.ext4 /dev/mapper/crypt
+sudo cryptsetup luksClose crypt
