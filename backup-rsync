@@ -32,6 +32,7 @@ rsync --archive --relative --progress --delete \
 	--exclude ~/.cabal \
 	--exclude ~/.sdkman \
 	--exclude ~/code/no_backup \
+	--exclude ~/no_backup \
 	"${SOURCE}"  "${TARGET}/backup-$(hostname)-${TODAY}/" --link-dest="${TARGET}/backup-$(hostname)-latest/"
 
 ln -nsf "${TARGET}/backup-$(hostname)-${TODAY}/" "${TARGET}/backup-$(hostname)-latest"
