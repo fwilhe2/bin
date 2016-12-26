@@ -3,8 +3,11 @@
 require 'asciidoctor'
 
 topics = Hash.new
-
 base_dir = ARGV[0]
+
+def output_file_name(input_file_name)
+    return File.basename(input_file_name, '.*') + '.html'
+end
 
 Dir.glob base_dir + '/docs/**/*.adoc' do |doc|
     Asciidoctor.convert_file doc, base_dir: base_dir, mkdirs: true, to_dir: 'output'
@@ -16,7 +19,7 @@ Dir.glob base_dir + '/docs/**/*.adoc' do |doc|
         if topics[t].nil?
             topics[t] = []
         end
-        topics[t] << File.basename(doc, '.adoc') + '.html'
+        topics[t] << output_file_name(doc)
     end
 
 end
