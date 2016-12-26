@@ -29,15 +29,19 @@ meta_index = <<END
 
 END
 
+def asciidoc_link(ref, text)
+    "link:#{ref}[#{text}]"
+end
+
 # create index files
 topics.each do |t, docs|
-    meta_index += "link:#{t}-index.html[#{t}]\n\n"
+    meta_index += "#{asciidoc_link(t + '-index.html', t)}\n\n"
     index = <<END
 == Index of #{t}
 
 END
     docs.each do |doc|
-        index += "link:#{doc}[#{File.basename(doc, '.*')}]\n\n"
+        index += "#{asciidoc_link(doc, File.basename(doc, '.*'))}\n\n"
     end
     html = Asciidoctor.convert index, header_footer: true
     File.open(base_dir + '/output/' + t + '-index.html', 'w') do |f|
