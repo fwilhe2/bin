@@ -37,7 +37,7 @@ topics.each do |t, docs|
 
 END
     docs.each do |doc|
-        index += "link:#{doc}[#{doc}]\n\n"
+        index += "link:#{doc}[#{File.basename(doc, '.*')}]\n\n"
     end
     html = Asciidoctor.convert index, header_footer: true
     File.open(base_dir + '/output/' + t + '-index.html', 'w') do |f|
