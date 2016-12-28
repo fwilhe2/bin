@@ -10,7 +10,7 @@ end
 
 def convert_directory(base_dir)
     Dir.glob base_dir + '/docs/**/*.adoc' do |doc|
-        Asciidoctor.convert_file doc, base_dir: base_dir, mkdirs: true, to_dir: 'output'
+        Asciidoctor.convert_file(doc, base_dir: base_dir, mkdirs: true, to_dir: 'output', safe: 'unsafe')
     end
 end
 
@@ -47,13 +47,13 @@ END
         docs.each do |doc|
             index += "#{asciidoc_link(doc, File.basename(doc, '.*'))}\n\n"
         end
-        html = Asciidoctor.convert index, header_footer: true
+        html = Asciidoctor.convert(index, header_footer: true, safe: 'unsafe')
         File.open(base_dir + '/output/' + t + '-index.html', 'w') do |f|
             f.write(html)
         end
 
     end
-    html = Asciidoctor.convert meta_index, header_footer: true
+    html = Asciidoctor.convert(meta_index, header_footer: true, safe: 'unsafe')
     File.open(base_dir + '/output/index.html', 'w') do |f|
         f.write(html)
     end
