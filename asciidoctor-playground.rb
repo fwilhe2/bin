@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'asciidoctor'
+require 'fileutils'
 
 base_dir = ARGV[0]
 
@@ -10,7 +11,17 @@ end
 
 def convert_directory(base_dir)
     Dir.glob base_dir + '/docs/**/*.adoc' do |doc|
-        Asciidoctor.convert_file(doc, base_dir: base_dir, mkdirs: true, to_dir: 'output', safe: 'unsafe')
+
+        lines = File.readlines(doc)
+        ad_doc = Asciidoctor::Document.new(lines, {:header_footer => true, :safe => 'unsafe'})
+        html = ad_doc.convert
+
+        FileUtils.mkdir_p(base_dir + "/output")
+
+        File.open(base_dir + '/output/' + output_file_name(doc), "w+") do |file|
+            file.puts html
+        end
+
     end
 end
 
