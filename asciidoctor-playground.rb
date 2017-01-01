@@ -9,11 +9,32 @@ def output_file_name(input_file_name)
     return File.basename(input_file_name, '.*') + '.html'
 end
 
+def asciidoc_link(ref, text)
+    "link:#{ref}[#{text}]"
+end
+
 def convert_directory(base_dir)
     Dir.glob base_dir + '/docs/**/*.adoc' do |doc|
 
         lines = File.readlines(doc)
+
+        # The list of topics should be added to the ad_doc object below, but this fails at the moment
+        lines << ""
+        lines << "Topics:"
+        lines << ""
+        asciidoctor_document = Asciidoctor.load_file doc
+        this_topics = asciidoctor_document.attributes['topics'].split(", ")
+        this_topics.each do |t|
+            lines << "* #{asciidoc_link(t + '-index.html', t)}\n"
+        end
+        lines << ""
+
         ad_doc = Asciidoctor::Document.new(lines, {:header_footer => true, :safe => 'unsafe'})
+
+        #docx = Asciidoctor::Document.new
+        #block = Asciidoctor::Block.new(docx, :paragraph, :source => '== Topics\n* foo\n* bar')
+        #ad_doc.<<(block)
+
         html = ad_doc.convert
 
         FileUtils.mkdir_p(base_dir + "/output")
@@ -43,10 +64,6 @@ def create_index_files(base_dir)
 = Index
 
 END
-
-    def asciidoc_link(ref, text)
-        "link:#{ref}[#{text}]"
-    end
 
     # create index files
     topics.each do |t, docs|
