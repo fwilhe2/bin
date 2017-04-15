@@ -20,17 +20,27 @@ SOURCE=~
 TODAY=$(date +%Y-%m-%d)
 
 rsync --archive --relative --progress --delete \
-	--exclude ~/.cache \
-	--exclude ~/.gradle \
-	--exclude ~/.vagrant.d \
-	--exclude ~/.m2 \
+	--exclude ~/.local \
 	--exclude ~/.npm \
-	--exclude ~/.local/share/Trash \
-	--exclude ~/.cabal \
-	--exclude ~/.sdkman \
-	--exclude ~/code/no_backup \
+	--exclude ~/.vagrant.d \
+	--exclude ~/.gradle \
+	--exclude ~/.bundle \
+	--exclude ~/.lein \
+	--exclude ~/.mplayer \
+	--exclude ~/.groovy \
+	--exclude ~/.gnome \
+	--exclude ~/.oh-my-zsh \
+	--exclude ~/.IntelliJIdea201* \
+	--exclude ~/.thumbnails \
+	--exclude ~/Downloads \
+	--exclude ~/Templates \
 	--exclude ~/no_backup \
+	--exclude ~/.java \
+	--exclude ~/Public \
+	--exclude ~/.ansible \
+	--exclude ~/.cache \
+	--exclude ~/gPodder \
+	--exclude ~/.m2 \
 	"${SOURCE}"  "${TARGET}/backup-$(hostname)-${TODAY}/" --link-dest="${TARGET}/backup-$(hostname)-latest/"
 
 ln -nsf "${TARGET}/backup-$(hostname)-${TODAY}/" "${TARGET}/backup-$(hostname)-latest"
-
