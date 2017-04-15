@@ -1,7 +1,6 @@
 #!/bin/bash
 set -o nounset
 set -o errexit
-set -o xtrace
 
 # Based on https://wiki.ubuntuusers.de/Skripte/Backup_mit_RSYNC#Beispiel-Minimal-Variante
 
@@ -24,8 +23,6 @@ rsync --archive --relative --progress --delete \
 	--exclude ~/.cache \
 	--exclude ~/.gradle \
 	--exclude ~/.vagrant.d \
-	--exclude ~/.IntelliJIdea14 \
-	--exclude ~/.IntelliJIdea15 \
 	--exclude ~/.m2 \
 	--exclude ~/.npm \
 	--exclude ~/.local/share/Trash \

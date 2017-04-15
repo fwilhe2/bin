@@ -1,9 +1,8 @@
 # ~/bin
 
-My `~/bin` dir
+Various shell scripts
 
 # Install
 
-`git clone git@github.com:fwilhe/bin.git ~/bin`
-
-
+Run `sudo make` to copy the scripts to `/usr/local/bin`.
+Or just copy the files somewhere to your `$PATH`.
