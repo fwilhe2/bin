@@ -5,7 +5,6 @@
 /home/florian/.config/google-chrome
 /home/florian/.dotnet
 /home/florian/.gnome
-/home/florian/.go
 /home/florian/.gradle
 /home/florian/.groovy
 /home/florian/.IntelliJIdea201*
@@ -22,7 +21,10 @@
 /home/florian/.thumbnails
 /home/florian/.vagrant.d
 /home/florian/Downloads
+/home/florian/go
 /home/florian/gPodder
 /home/florian/no_backup
 /home/florian/Public
+/home/florian/software
+/home/florian/Software
 /home/florian/Templates
