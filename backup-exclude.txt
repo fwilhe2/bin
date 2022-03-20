@@ -1,4 +1,5 @@
 /home/florian/.ansible
+/home/florian/.android
 /home/florian/.bundle
 /home/florian/.cache
 /home/florian/.cargo
