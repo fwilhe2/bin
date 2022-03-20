@@ -22,6 +22,7 @@
 /home/florian/.thumbnails
 /home/florian/.vagrant.d
 /home/florian/Downloads
+/home/florian/code/scratch
 /home/florian/go
 /home/florian/gPodder
 /home/florian/no_backup
