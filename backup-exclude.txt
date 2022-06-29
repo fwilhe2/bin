@@ -32,3 +32,5 @@
 /home/florian/Templates
 /home/florian/.konan
 /home/florian/.jdks
+/home/florian/.lemminx
+/home/florian/.lima
