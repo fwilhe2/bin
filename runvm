@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
-# MIT License
-# Taken from https://gitlab.com/CentOS/automotive/sample-images/-/blob/main/osbuild-manifests/runvm
-# Copyright Red Hat.
+# SPDX-FileCopyrightText: Red Hat
+# SPDX-License-Identifier: MIT
+# Taken from https://gitlab.com/CentOS/automotive/src/automotive-image-builder/-/blob/c482f12b976d5641ce272e2513edcb7bd6f55e66/automotive-image-runner
+# License: https://gitlab.com/CentOS/automotive/src/automotive-image-builder/-/blob/c482f12b976d5641ce272e2513edcb7bd6f55e66/LICENSE#L1
 
 import argparse
 import atexit
@@ -126,18 +127,37 @@ def run_http_server(path):
 
     return http_port
 
+def run_virtiofs_server(socket, sharedir):
+    vio_args = [
+        "/usr/libexec/virtiofsd",
+        "--socket-path=" + socket,
+        "-o", "source=" + sharedir,
+        "-o", "cache=always"
+    ]
+    if not is_verbose:
+        vio_args += [
+            "--log-level", "off"
+        ]
+    print_verbose(f"Running: {' '.join(vio_args)}")
+    return subprocess.Popen(vio_args)
+
 def find_ovmf(args):
     dirs = [
         "~/.local/share/ovmf",
         "/usr/share/OVMF",
-        "/usr/share/edk2/ovmf/"
+        "/usr/share/edk2/ovmf",
     ]
     if args.ovmf_dir:
-        dirs.append(args.ovmf_dir)
+        dirs.insert(0, args.ovmf_dir)
 
     for d in dirs:
         path = os.path.expanduser(d)
-        if os.path.exists(path):
+        if args.secureboot:
+            suffix = ".secboot"
+        else:
+            suffix = ""
+        if (os.path.exists(f"{path}/OVMF_CODE{suffix}.fd") and
+            os.path.exists(f"{path}/OVMF_VARS{suffix}.fd")):
             return path
 
     raise RuntimeError("Could not find OMVF")
@@ -286,6 +306,8 @@ def main():
                         help=f"Enable watchdog")
     parser.add_argument("--tpm2", default=False, action="store_true",
                         help=f"Enable TPM2")
+    parser.add_argument("--nvme", default=False, action="store_true",
+                        help=f"Use nvme instead of virtio")
     parser.add_argument("--snapshot", default=False, action="store_true",
                         help=f"Work on a snapshot  of the image")
     parser.add_argument("--ovmf-dir", action="store",
@@ -300,6 +322,8 @@ def main():
                         help="Specify .iso to load")
     parser.add_argument("--noaccel", default=False, action="store_true",
                         help=f"Disable acceleration (kvm or hvf)")
+    parser.add_argument("--sharedir", action="store",
+                        help=f"Share directory using virtiofs")
     parser.add_argument("image", type=str, help="The image to boot")
     parser.add_argument('extra_args', nargs=argparse.REMAINDER, metavar="...", help="extra qemu arguments")
 
@@ -481,20 +505,41 @@ def main():
 
     print_verbose(f"Image: {args.image}")
 
-    if args.image.endswith(".raw"):
-        qemu_args += [
-            "-drive", f"file={args.image},index=0,media=disk,format=raw,if=virtio,snapshot={bool_arg(args.snapshot)}",
-        ]
-    else: # assume qcow2
-        qemu_args += [
-            "-drive", f"file={args.image},index=0,media=disk,format=qcow2,if=virtio,snapshot={bool_arg(args.snapshot)}",
-        ]
+    disk_if = "virtio"
+    if args.nvme:
+        disk_if = "none"
+        qemu_args += [ "-device", "nvme,serial=deadbeef,drive=rootdisk"  ]
+
+    disk_format = "qcow2"
+    if args.image.endswith(".raw") or args.image.endswith(".img"):
+        disk_format = "raw"
+
+    qemu_args += [
+        "-drive", f"file={args.image},index=0,media=disk,format={disk_format},if={disk_if},id=rootdisk,snapshot={bool_arg(args.snapshot)}",
+    ]
 
     if args.cdrom:
         qemu_args += [
             "-cdrom", args.cdrom,
             "-boot", "d"
         ]
+
+    virtiod = None
+    if args.sharedir:
+        if not os.path.isdir(args.sharedir):
+            exit_error(f"Shared dir {args.sharedir} is not a valid directory")
+
+        vhostsocket = os.path.join(tmpdir.name, "vhost")
+
+        virtiod = run_virtiofs_server(vhostsocket, args.sharedir)
+
+        qemu_args += [
+            "-chardev", "socket,id=char0,path=" + vhostsocket,
+            "-device", "vhost-user-fs-pci,queue-size=1024,chardev=char0,tag=host",
+            "-object", "memory-backend-file,id=mem,size="+str(args.memory)+",mem-path=/dev/shm,share=on",
+            "-numa", "node,memdev=mem"
+        ]
+        print(f"Sharing directory {args.sharedir}, mount using 'mount -t virtiofs host /mnt'")
 
     qemu_args += args.extra_args
 
@@ -507,6 +552,9 @@ def main():
 
     if watchdog_pid:
         os.kill(watchdog_pid, signal.SIGTERM)
+
+    if virtiod:
+        virtiod.terminate()
 
     tmpdir.cleanup()
 
