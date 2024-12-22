@@ -1,0 +1,53 @@
+#!/usr/bin/env python3
+
+# Wrapper for git clone to get a consistent directory layout
+
+import os
+import subprocess
+from urllib.parse import urlparse
+import argparse
+
+def get_repo_path(repo_url, base_dir='~/code'):
+    """
+    Generate the local path for the repository based on the URL.
+    Args:
+        repo_url (str): The URL of the repository.
+        base_dir (str): The base directory where the repositories will be stored.
+    Returns:
+        str: The local path where the repository should be cloned.
+    """
+    parsed_url = urlparse(repo_url)
+    repo_path = os.path.join(base_dir, parsed_url.netloc, parsed_url.path.lstrip('/'))
+    return os.path.expanduser(repo_path)
+
+def clone_repo(repo_url, base_dir='~/code', git_args=None):
+    """
+    Clone a Git repository into a defined directory structure.
+    Args:
+        repo_url (str): The URL of the repository.
+        base_dir (str): The base directory where the repositories will be stored.
+        git_args (list): Additional Git CLI arguments.
+    """
+    repo_path = get_repo_path(repo_url, base_dir)
+    if not os.path.exists(repo_path):
+        os.makedirs(repo_path)
+    clone_command = ['git', 'clone', repo_url, repo_path]
+    if git_args:
+        clone_command.extend(git_args)
+    subprocess.run(clone_command)
+
+def main():
+    parser = argparse.ArgumentParser(description='Clone a Git repository into a defined directory structure.')
+    parser.add_argument('repo_url', type=str, help='The URL of the repository to clone')
+    parser.add_argument('--base-dir', type=str, default=None, help='The base directory where the repositories will be stored')
+    parser.add_argument('git_args', nargs=argparse.REMAINDER, help='Additional arguments for the git clone command')
+
+    args = parser.parse_args()
+
+    # Get base directory from environment variable if available, otherwise use the default or provided base directory
+    base_dir = os.getenv('GCL_BASE_DIR', args.base_dir if args.base_dir else '~/code')
+
+    clone_repo(args.repo_url, base_dir, args.git_args)
+
+if __name__ == "__main__":
+    main()
