@@ -1,0 +1,86 @@
+#!/usr/bin/env python3
+import sys
+import os
+import re
+import datetime
+
+TEMPLATES = {
+    "adr": """# {num}. {title}
+
+Date: {date}
+
+## Status
+
+Proposed
+
+## Context
+
+The issue motivating this decision, and any context that influences or constrains the decision.
+
+## Decision
+
+The change that we're proposing or have agreed to implement.
+
+## Consequences
+
+What becomes easier or more difficult to do and any risks introduced by the change that will need to be mitigated.
+""",
+    "note": """# {num}. {title}
+
+Date: {date}
+
+## Context
+
+Background information or observations.
+
+## Content
+
+The main notes or details.
+
+## Follow-up
+
+Any next steps or open questions.
+"""
+}
+
+def slugify(title: str) -> str:
+    return re.sub(r'[^a-z0-9]+', '-', title.casefold()).strip('-')
+
+def next_id(doc_dir: str) -> int:
+    files = [f for f in os.listdir(doc_dir) if re.match(r'^\d{6}-', f)]
+    if not files:
+        return 1
+    latest = max(int(f.split('-')[0]) for f in files)
+    return latest + 1
+
+def main():
+    if len(sys.argv) < 3:
+        print("Usage: new-doc TYPE \"Title of the document\"")
+        print(f"Available types: {', '.join(TEMPLATES.keys())}")
+        sys.exit(1)
+
+    doc_type = sys.argv[1].casefold()
+    title = " ".join(sys.argv[2:])
+
+    if doc_type not in TEMPLATES:
+        print(f"Unknown type '{doc_type}'. Available: {', '.join(TEMPLATES.keys())}")
+        sys.exit(1)
+
+    base_dir = doc_type
+    os.makedirs(base_dir, exist_ok=True)
+
+    num = next_id(base_dir)
+    slug = slugify(title)
+    filename = f"{num:06d}-{slug}.md"
+    path = os.path.join(base_dir, filename)
+
+    date = datetime.date.today().isoformat()
+    template = TEMPLATES[doc_type].format(num=num, title=title, date=date)
+
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(template)
+
+    print(f"Created {path}")
+
+if __name__ == "__main__":
+    main()
